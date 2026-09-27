@@ -32,9 +32,15 @@
 \maketitle
 
 \section{Random variables}
-A random variable lets us focus on a numerical feature of a random experiment rather than its full outcome. For example, when tossing two coins, the number of heads treats \(HT\) and \(TH\) alike, ignoring the order when it is irrelevant. This makes the quantity of interest easier to study mathematically.
-
-Although formally a function \(X:\Omega\to\mathbb{R}\), it is called a “random variable” because it represents a quantity whose value depends on the random outcome. The assignment rule is fixed; what is uncertain is which outcome occurs and hence which value the quantity takes.
+A random variable turns the result of an experiment into a number, so we can
+calculate probabilities and averages. For example, let $X$ be the number of
+heads in two coin tosses:
+\[
+X(HH)=2,\qquad X(HT)=X(TH)=1,\qquad X(TT)=0.
+\]
+$X$ is a function because it assigns a number to each outcome. The rule is
+fixed, but we do not know which outcome will occur, so the value of $X$ is
+uncertain. This is why it is called a \emph{random variable}.
 
 \section{Probability and estimation identities}
 \subsection*{(a)}
@@ -1420,78 +1426,34 @@ It follows that
 \]
 \section{Utility, fairness, and RL rewards}
 
-Throughout the solution, the feasible set is
-\[
-F=\bigl\{(x_1,x_2)\in\mathbb{R}_{\geq 0}^{2}:
-                 x_1+2x_2\leq 12\bigr\},
-\]
-and the designer evaluates an allocation through
-\[
-W(x_1,x_2)=w_1u_1(x_1)+w_2u_2(x_2),\qquad w_1,w_2>0.
-\]
-All logarithms are natural, and logarithmic utilities are considered only
-at strictly positive service rates.
+We use the constraint $x_1+2x_2\leq12$, with $x_1,x_2\geq0$.
+For logarithms, both rates must be positive.
 
 \subsection*{(a)}
-
-\paragraph{What a utility function represents.}
-Write $a\succeq b$ when outcome $a$ is at least as desirable as outcome
-$b$. A utility function $u$ represents this preference relation if
+A utility function gives a score to each outcome: a higher score means a
+better outcome. In symbols,
 \[
 a\succeq b\quad\Longleftrightarrow\quad u(a)\geq u(b).
 \]
-Thus, utility assigns numbers to outcomes in a way that reproduces their
-preference ordering. On the positive service rates, both $u(x)=x$ and
-$v(x)=\log x$ represent the preference that more service is better,
-since both functions are strictly increasing.
-
-This does not mean that summing these utilities across users produces the
-same optimal allocation. With equal weights, consider
+Both $u(x)=x$ and $v(x)=\log x$ say that more service is better. But
+adding the two users' scores can give different answers. With equal weights,
 \[
-\begin{aligned}
-W_u(x_1,x_2)&=x_1+x_2,\\
-W_v(x_1,x_2)&=\log x_1+\log x_2=\log(x_1x_2).
-\end{aligned}
+\begin{array}{c|c}
+\text{Objective} & \text{Best allocation}\\ \hline
+x_1+x_2 & (12,0)\\
+\log x_1+\log x_2 & (6,3)
+\end{array}
 \]
-On the given feasible set, the first objective is maximized at $(12,0)$,
-whereas the logarithmic objective, on the positive part of the feasible
-set, is maximized at $(6,3)$. These optima are derived explicitly in part
-(c). Hence, even though the individual deterministic preference orderings
-agree wherever both utilities are defined, the aggregate objectives need
-not give the same allocation.
-
-\paragraph{Ordering outcomes versus measuring contributions.}
-The statement ``more service is better'' specifies the direction of
-preference, but it does not specify how much additional utility a given
-increase in service should contribute. The distinction can be seen from
-the slopes:
-\[
-u'(x)=1,\qquad v'(x)=\frac{1}{x}.
-\]
-For a small increase $h>0$, linear utility increases by exactly $h$,
-whereas logarithmic utility increases by approximately $h/x$. Under the
-logarithmic scale, the same service increment therefore contributes more
-when the user's existing service rate is small.
-
-When resources are limited, the designer must compare improvements to
-different users and decide which improvement contributes more to the
-aggregate objective. An individual's ordering of their own outcomes does
-not supply this interpersonal comparison. The chosen utility scales and
-weights supply additional information about how users' gains are to be
-traded off. In particular, a strictly increasing transformation preserves
-an individual's ordinal preferences, but applying it to each user's utility
-before summing can change the maximizer of the sum.
+The calculations are in part (c). The reason is that the two scores grow
+differently: their slopes are $1$ and $1/x$. Under $\log x$, the same small
+increase in service helps a user with less service more. Knowing that each
+user wants more does not tell us whose extra service should count more.
+The utility functions and weights make that choice.
 
 \subsection*{(b)}
-
-\paragraph{Increasing utility with diminishing slope.}
-The condition $u'(x)>0$ means that additional service always increases
-utility. The condition $u''(x)<0$ means that the slope $u'(x)$ strictly
-decreases as service increases: utility continues to grow, but it grows
-more slowly. This is strict concavity, or diminishing marginal utility.
-A representative curve rises from left to right and becomes progressively
-flatter; its tangent is steeper at a smaller service rate than at a larger
-one.
+$u'(x)>0$ means that more service gives more utility.
+$u''(x)<0$ means that the slope gets smaller: each extra unit adds less
+utility than before. The curve rises but becomes flatter.
 
 \begin{figure}[htbp]
 \centering
@@ -1514,542 +1476,245 @@ one.
  \node[below] at (5,0) {$5$};
  \node at (3.4,2.75) {$u'(x)>0,\qquad u''(x)<0$};
 \end{tikzpicture}
-\caption{Increasing, strictly concave utility: the same extra service has a
-smaller marginal benefit at a higher service level.}
+\caption{The curve rises but gets flatter: extra service adds less utility
+when a user already has more.}
 \label{fig:utility}
 \end{figure}
 
-\paragraph{Why a transfer increases the sum of utilities.}
-Suppose $0<a<b$, and transfer an amount $\delta$ from the better-served
-user to the worse-served user, where
+\paragraph{Why a transfer helps.}
+Let $0<a<b$ and $0<\delta<(b-a)/2$. Define
 \[
-0<\delta<\frac{b-a}{2}.
+h(t)=u(a+t)+u(b-t),\qquad 0\leq t\leq\delta.
 \]
-Define the utility along this transfer by
+Because $a+t<b-t$ and $u'$ is decreasing,
 \[
-h(t)=u(a+t)+u(b-t),\qquad 0\leq t\leq\frac{b-a}{2}.
+h'(t)=u'(a+t)-u'(b-t)>0.
 \]
-Differentiating gives
+Thus $h(\delta)>h(0)$, which is exactly
 \[
-h'(t)=u'(a+t)-u'(b-t).
+u(a+\delta)+u(b-\delta)>u(a)+u(b).
 \]
-For $0\leq t<(b-a)/2$, we have $a+t<b-t$. Since $u'$ is strictly
-decreasing, it follows that
-\[
-u'(a+t)>u'(b-t),\qquad h'(t)>0.
-\]
-Consequently,
-\[
-\begin{aligned}
-&u(a+\delta)+u(b-\delta)-u(a)-u(b)\\
-&\qquad=\int_0^\delta\bigl(u'(a+t)-u'(b-t)\bigr)\,dt>0.
-\end{aligned}
-\]
-The worse-served user gains more utility from each transferred unit than
-the better-served user loses. This proves the required strict increase.
+In words, the user with less service gains more utility than the other
+user loses.
 
-Continuing the transfer until
-\[
-\delta=\frac{b-a}{2}
-\]
-gives equal service rates:
-\[
-a+\delta=b-\delta=\frac{a+b}{2}.
-\]
-For a fixed total amount of service $a+b$, this is the maximum of the sum
-of the two identical strictly concave utilities. Equivalently, strict
-concavity gives
-\[
-u(a)+u(b)<2u\!\left(\frac{a+b}{2}\right)
-\quad\text{when }a\ne b.
-\]
-
-\paragraph{Equal service is not the same as equal resource use.}
-The preceding argument holds the sum of the service rates fixed. It does
-not account for a difference in the resources needed to deliver those
-rates. If both users cost the same per unit of service, a one-for-one
-service transfer preserves resource consumption. In this problem,
-however, a unit of service to user 2 costs twice as much as a unit to
-user 1.
-
-For example, at the logarithmic optimum $(6,3)$, transferring $\delta>0$
-units of service from user 1 to user 2 would give $(6-\delta,3+\delta)$.
-Its resource consumption is
+\paragraph{Must the best rates be equal?}
+No. The transfer above keeps total \emph{service} fixed, but it may use more
+\emph{resources}. For example, transferring service from user 1 to user 2
+at $(6,3)$ gives
 \[
 (6-\delta)+2(3+\delta)=12+\delta>12,
 \]
-so the transfer is infeasible. A resource-preserving increase of one unit
-in user 2's service instead requires a decrease of two units in user 1's
-service. Thus the fixed-service-sum argument cannot simply be applied
-to the resource boundary.
-
-Indeed, $u(x)=\log x$ is strictly increasing and strictly concave, but its
-sum is maximized at $(6,3)$, not at equal service rates. The equal-service
-allocation on the resource boundary is $(4,4)$, and
-\[
-\log 6+\log 3=\log 18>\log 16=2\log 4.
-\]
-Strict concavity favors balancing marginal gains subject to feasibility;
-it does not, by itself, require equal service rates under unequal costs.
+which breaks the constraint. Even with the same strictly concave utility
+$\log x$, the best allocation is $(6,3)$, not equal rates.
 
 \subsection*{(c)}
-
-\paragraph{The three optimal allocations.}
-For total service, the constraint implies
+\paragraph{The three allocations.}
+\begin{enumerate}
+\item \textbf{Total service.} Since
 \[
-x_1+x_2=(x_1+2x_2)-x_2\leq 12-x_2\leq 12.
+x_1+x_2\leq x_1+2x_2\leq12,
 \]
-Equality requires $x_2=0$ and $x_1=12$. Therefore, the unique maximizer
-of total service is
-\[
-(x_1,x_2)=(12,0).
-\]
-The objective places all resources with the user who is cheaper to serve.
+the maximum is $12$, reached at $(12,0)$.
 
-For logarithmic utility, maximizing $\log x_1+\log x_2$ is equivalent
-to maximizing $x_1x_2$ over positive feasible rates. By the arithmetic--
-geometric mean inequality,
+\item \textbf{Logarithmic utility.} Maximizing the sum of the logarithms
+is the same as maximizing $x_1x_2$. By AM--GM,
 \[
 x_1x_2=\frac{x_1(2x_2)}{2}
-\leq\frac{1}{2}\left(\frac{x_1+2x_2}{2}\right)^2
-\leq 18.
+\leq\frac12\left(\frac{x_1+2x_2}{2}\right)^2\leq18.
 \]
-Equality holds precisely when $x_1=2x_2$ and $x_1+2x_2=12$. Hence,
-\[
-(x_1,x_2)=(6,3)
-\]
-is the unique logarithmic-utility maximizer.
+Equality needs $x_1=2x_2$ and $x_1+2x_2=12$, giving $(6,3)$.
 
-For minimum service, put $m=\min\{x_1,x_2\}$. Both rates are at least
-$m$, so
+\item \textbf{Minimum service.} Let $m=\min\{x_1,x_2\}$. Then
 \[
-3m\leq x_1+2x_2\leq 12,\qquad m\leq 4.
+3m\leq x_1+2x_2\leq12,
 \]
-The bound is attained at $(4,4)$. Moreover, attaining $m=4$ requires both
-rates to be at least $4$, and the resource constraint then forces both
-to equal $4$. The unique optimum is therefore
-\[
-(x_1,x_2)=(4,4).
-\]
+so $m\leq4$, reached at $(4,4)$.
+\end{enumerate}
+The first choice gives the largest total service. The third gives equal
+service here. Log utility does neither; it gives \emph{proportional fairness},
+which compares percentage changes rather than equal amounts.
 
-The first objective maximizes total service, even at the cost of giving
-one user no service. The third maximizes the worst-served user's rate and,
-in this particular feasible set, produces equal service. The logarithmic
-objective produces neither of those allocations. Its principle is
-\emph{proportional fairness}, rather than maximum total service or absolute
-equality of service.
+\paragraph{Proof of proportional fairness.}
+Let $\mathbf{x}^*$ maximize $W(\mathbf{x})=\sum_i\log x_i$ on the given
+convex set $C$. For any $\mathbf{y}\in C$, convexity means that
+\[
+\mathbf{x}(t)=\mathbf{x}^*+t(\mathbf{y}-\mathbf{x}^*)\in C,
+\qquad 0\leq t\leq1.
+\]
+Set $g(t)=W(\mathbf{x}(t))$. Since $\mathbf{x}^*$ is best, $g(t)\leq g(0)$.
+Therefore its right derivative at zero cannot be positive:
+\[
+0\geq g'(0^+)=\sum_{i=1}^n\frac{y_i-x_i^*}{x_i^*}.
+\]
+Each fraction is one user's relative change. For example, going from $4$
+to $5$ gives $1/4$, or a $25\%$ gain. The inequality says that the sum of
+percentage gains cannot exceed the sum of percentage losses. This is
+\emph{proportional fairness}.
 
-\paragraph{The proportional-fairness inequality.}
-Let $C\subseteq\mathbb{R}_{>0}^{n}$ be convex, and suppose that
-$\mathbf{x}^{\star}$ maximizes
-\[
-W(\mathbf{x})=\sum_{i=1}^{n}\log x_i
-\]
-over $C$. Fix any $\mathbf{y}\in C$. Convexity allows us to move along
-the line segment from $\mathbf{x}^{\star}$ to $\mathbf{y}$ while staying
-feasible:
-\[
-\mathbf{x}(t)=\mathbf{x}^{\star}
-             +t(\mathbf{y}-\mathbf{x}^{\star})\in C,
-\qquad 0\leq t\leq 1.
-\]
-Define
-\[
-\phi(t)=W\bigl(\mathbf{x}(t)\bigr)
-       =\sum_{i=1}^{n}\log\bigl(x_i^{\star}+t(y_i-x_i^{\star})\bigr).
-\]
-Optimality implies $\phi(t)\leq\phi(0)$ for every $t\in[0,1]$. Thus,
-\[
-\phi'_+(0)=\lim_{t\downarrow0}\frac{\phi(t)-\phi(0)}{t}\leq0.
-\]
-Computing this directional derivative yields
-\[
-\boxed{\displaystyle
-\sum_{i=1}^{n}\frac{y_i-x_i^{\star}}{x_i^{\star}}\leq0.}
-\]
-Each summand is user $i$'s proportional change in service when moving
-from $\mathbf{x}^{\star}$ to $\mathbf{y}$. The inequality says that no
-feasible alternative can make the sum of these proportional changes
-positive: proportional gains must be offset by proportional losses.
-It does not say that every individual user must lose. This is the
-proportional-fairness criterion.
-
-\paragraph{Weighted logarithmic utility.}
-For $W(x_1,x_2)=2\log x_1+\log x_2$, maximizing utility is equivalent
-to maximizing $x_1^2x_2$. For the arithmetic--geometric mean inequality, split $x_1$ into two equal terms:
+\paragraph{Weighting user 1 twice.}
+Maximizing $2\log x_1+\log x_2$ is the same as maximizing $x_1^2x_2$.
+Again, AM--GM gives
 \[
 \begin{aligned}
 x_1^2x_2
-&=2\left(\frac{x_1}{2}\right)
-     \left(\frac{x_1}{2}\right)(2x_2)\\
-&\leq 2\left(\frac{x_1/2+x_1/2+2x_2}{3}\right)^3\\
-&=2\left(\frac{x_1+2x_2}{3}\right)^3
-\leq 2\left(\frac{12}{3}\right)^3=128.
+&=2\left(\frac{x_1}{2}\right)\left(\frac{x_1}{2}\right)(2x_2)\\
+&\leq2\left(\frac{x_1+2x_2}{3}\right)^3\leq128.
 \end{aligned}
 \]
-Equality requires
-\[
-\frac{x_1}{2}=\frac{x_1}{2}=2x_2,
-\qquad x_1+2x_2=12.
-\]
-Therefore, $x_1=4x_2$, giving the unique optimum
-\[
-\boxed{(x_1,x_2)=(8,2).}
-\]
-The coefficient $2$ gives user 1's utility twice the relative importance
-in the aggregate objective. Algebraically, it is as if that utility were
-counted twice. It need not mean that there are literally two physical
-users of type 1; such an interpretation would require an additional
-modeling assumption. The weight specifies the designer's trade-off,
-not the service cost, which is already encoded in the constraint.
+Equality needs $x_1/2=2x_2$ and $x_1+2x_2=12$. Hence the answer is
+$(8,2)$. The weight $2$ means that user 1's utility counts twice in the
+objective, not that user 1 must receive twice as much service.
 
 \subsection*{(d)}
-
-\paragraph{Expected payoffs and expected logarithmic utilities.}
-Let $X_A=5$ with certainty, while $X_B$ takes values $1$ and $9$ with
-equal probabilities. Their expected payoffs are
+The expected payoffs are equal:
 \[
-\mathbb{E}[X_A]=5,\qquad
-\mathbb{E}[X_B]=\frac12\cdot1+\frac12\cdot9=5.
+\mathbb E[X_A]=5,\qquad
+\mathbb E[X_B]=\tfrac12(1)+\tfrac12(9)=5.
 \]
-Thus, maximizing expected payoff gives indifference between the options.
-Their expected logarithmic utilities are instead
+So a person maximizing expected payoff values A and B equally.
+With log utility,
 \[
-\begin{aligned}
-\mathbb{E}[\log X_A]&=\log5,\\
-\mathbb{E}[\log X_B]&=\frac12\log1+\frac12\log9=\log3.
-\end{aligned}
+\mathbb E[\log X_A]=\log5,\qquad
+\mathbb E[\log X_B]=\tfrac12\log1+\tfrac12\log9=\log3.
 \]
-Since $\log5>\log3$, expected logarithmic utility strictly prefers the
-certain payoff, Option A.
-
-The logarithmic certainty equivalent of Option B is the certain amount
-$c$ whose utility equals the lottery's expected utility:
+Now A is better. B's certainty equivalent is the sure amount $c$ that
+has the same utility as B:
 \[
-\log c=\mathbb{E}[\log X_B]=\log3,
-\qquad c=3.
+\log c=\log3\quad\Longrightarrow\quad c=3.
 \]
-Thus, the lottery is equivalent to a certain payoff of $3$ under
-logarithmic utility, even though its expected payoff is $5$.
-
-\paragraph{Jensen's inequality and risk aversion.}
-For a concave function $u$, Jensen's inequality states, whenever the
-quantities are well defined and finite, that
+For any concave utility, Jensen's inequality gives
 \[
-\mathbb{E}[u(X)]\leq u\bigl(\mathbb{E}[X]\bigr).
+\mathbb E[u(X)]\leq u(\mathbb E[X]),
 \]
-The right-hand side is the utility of receiving the expected payoff with
-certainty. Hence an expected-utility decision maker with concave utility
-weakly prefers that certain payoff to the lottery. For strictly concave
-utility and a nonconstant lottery, the inequality is strict.
-
-If $u$ is also strictly increasing and the certainty equivalent satisfies
-$u(c)=\mathbb{E}[u(X)]$, then
-\[
-u(c)\leq u\bigl(\mathbb{E}[X]\bigr)
-\quad\Longrightarrow\quad c\leq\mathbb{E}[X].
-\]
-For logarithmic utility this becomes
-\[
-c=\exp\bigl(\mathbb{E}[\log X]\bigr)\leq\mathbb{E}[X].
-\]
-This is the risk-aversion interpretation of concavity: uncertainty lowers
-the certainty equivalent relative to the expected payoff.
-
-\paragraph{Why this is different from interpersonal fairness.}
-Here there is only one user, and utility is averaged over that user's
-possible outcomes in different states of uncertainty. In part (b),
-utilities are added across different users receiving a deterministic
-allocation. The same diminishing-slope property explains both results,
-but the comparisons are different: risk aversion concerns uncertainty
-for one person, while fairness concerns the distribution across people.
-There is no interpersonal allocation to judge as fair or unfair in the
-single-user lottery comparison.
+assuming these expectations are finite. Thus receiving the mean payoff
+for sure is at least as good as taking the gamble. This is \emph{risk
+aversion}. Here we compare one person's possible payoffs; part (b)
+compares service given to different people. That is why one is about
+risk and the other is about fairness.
 
 \subsection*{(e)}
+A lottery is a list of possible outcomes and their probabilities.
+For a finite set $\{z_1,\ldots,z_n\}$, write a lottery as
+$p=(p_1,\ldots,p_n)$, where $p_i\geq0$ and $\sum_i p_i=1$.
+Here $p\succeq q$ means that $p$ is at least as good as $q$, and
+$p\sim q$ means they are equally good.
 
-\paragraph{Lotteries and the four preference axioms.}
-Let the finite outcome set be $\mathcal{X}=\{z_1,\ldots,z_n\}$. A
-lottery is a probability vector
-\[
-p=(p_1,\ldots,p_n),\qquad p_i\geq0,\qquad\sum_{i=1}^{n}p_i=1,
-\]
-where $p_i$ is the probability of outcome $z_i$. The standard axioms on
-preferences over all such lotteries are the following.
-
+The VNM theorem uses four rules for comparing lotteries:
 \begin{enumerate}
-\item \textbf{Completeness.} For any lotteries $p,q$, either $p\succeq q$
-or $q\succeq p$, or both. Thus every pair of lotteries can be compared;
-when both relations hold, write $p\sim q$.
-
-\item \textbf{Transitivity.} If $p\succeq q$ and $q\succeq r$, then
-$p\succeq r$. The preference ordering is internally consistent.
-
-\item \textbf{Continuity.} If $p\succ q\succ r$, there exists
-$\alpha\in(0,1)$ such that
+\item \textbf{Completeness:} any two lotteries can be compared:
+$p\succeq q$ or $q\succeq p$, or both.
+\item \textbf{Transitivity:} if $p\succeq q$ and $q\succeq r$, then
+$p\succeq r$.
+\item \textbf{Continuity:} if $p\succ q\succ r$, then for some
+$\alpha\in(0,1)$,
 \[
 q\sim\alpha p+(1-\alpha)r.
 \]
-An intermediate lottery is indifferent to some probability mixture of
-the better and worse lotteries; preferences do not have an unbridgeable
-jump between them.
-
-\item \textbf{Independence.} For any lotteries $p,q,r$ and
-$\alpha\in(0,1)$,
+In words, a suitable mix of the best and worst lotteries is as good as
+the middle one.
+\item \textbf{Independence:} mixing both choices with the same third
+lottery in the same proportion keeps their order:
 \[
-p\succeq q
-\quad\Longleftrightarrow\quad
-\alpha p+(1-\alpha)r\succeq\alpha q+(1-\alpha)r.
+p\succeq q\quad\Longleftrightarrow\quad
+\alpha p+(1-\alpha)r\succeq\alpha q+(1-\alpha)r,
 \]
-Mixing each of two lotteries with the same third lottery in the same
-proportion does not change their ordering.
+for $0<\alpha<1$. The mixture chooses $p$ with probability $\alpha$
+and $r$ otherwise, and similarly for $q$.
 \end{enumerate}
-
-\paragraph{Expected-utility representation.}
-The von Neumann--Morgenstern theorem states that these axioms characterize
-preferences that admit an expected-utility representation. There exists
-$u:\mathcal{X}\to\mathbb{R}$ such that, writing
+If these rules hold, there is a utility $u$ such that lotteries are ranked
+by expected utility:
 \[
-U(p)=\mathbb{E}_p[u(Z)]=\sum_{i=1}^{n}p_i u(z_i),
+U(p)=\sum_{i=1}^n p_i u(z_i),\qquad
+p\succeq q\ \Longleftrightarrow\ U(p)\geq U(q).
 \]
-we have
-\[
-p\succeq q\quad\Longleftrightarrow\quad U(p)\geq U(q).
-\]
-The decision maker can therefore be represented as choosing a lottery
-with maximal expected utility. Conversely, preferences represented in
-this way satisfy the four axioms.
-
-\paragraph{Uniqueness up to positive affine transformations.}
-If $u$ represents these lottery preferences, then so does
+Conversely, this way of ranking lotteries satisfies the four rules.
+Any other utility giving the same lottery rankings has the form
 \[
 v(z)=a u(z)+b,\qquad a>0,
 \]
-since
-\[
-\mathbb{E}_p[v(Z)]=a\mathbb{E}_p[u(Z)]+b.
-\]
-The same positive scaling and constant shift apply to every lottery, so
-no comparison changes. Moreover, any other expected-utility
-representation of the same preferences on all lotteries over
-$\mathcal{X}$ is related to $u$ by such a positive affine transformation.
+called a \emph{positive affine transformation}. It preserves the rankings
+because $\mathbb E[v]=a\mathbb E[u]+b$.
 
-The theorem does not require $u$ to be concave, and does not require it
-to be logarithmic. Concavity is an additional property relevant to risk
-attitudes when outcomes have a numerical payoff interpretation. Nor does
-the theorem determine a fair allocation across several users: it
-represents a decision maker's lottery preferences, without selecting the
-interpersonal utility scales, weights, or fairness objective of a system
-designer.
+The theorem does not require concave or log utility, and it does not tell
+us what is fair across different users.
 
-\paragraph{Why an arbitrary increasing transformation is not enough.}
-For deterministic outcomes, a strictly increasing transformation preserves
-the ordering of utility values. In particular, $u(x)=x$ and $v(x)=\log x$
-both give
-\[
-9\succ5\succ1.
-\]
-However, expected utility averages the transformed values over possible
-outcomes, and a nonlinear transformation can change comparisons between
-these averages.
-
-The lotteries in part (d) show this directly. With $u(x)=x$,
-\[
-\mathbb{E}[u(X_A)]=5
-=\frac12\cdot1+\frac12\cdot9
-=\mathbb{E}[u(X_B)],
-\]
-so $A\sim B$. With $v(x)=\log x$,
-\[
-\mathbb{E}[v(X_A)]=\log5
->\log3
-=\mathbb{E}[v(X_B)],
-\]
-so $A\succ B$. Thus the deterministic rankings coincide, but the lottery
-rankings do not. This is why VNM utility is unique up to positive affine
-transformations, rather than arbitrary strictly increasing ones.
+For fixed payoffs, $x$ and $\log x$ both rank $9$ above $5$ above $1$.
+But in part (d), linear utility makes A and B equally good ($5=5$), while
+log utility prefers A ($\log5>\log3$). Thus a strictly increasing change
+of utility can keep the order of fixed payoffs but change the order of
+lotteries.
 
 \subsection*{(f)}
+\paragraph{The reward hypothesis.}
+An agent's goal can be described by a numerical reward, and the agent tries
+to maximize the expected total reward:
+\[
+J(\pi)=\mathbb E_\pi\!\left[\sum_{t=0}^{T-1}R_{t+1}\right].
+\]
+This is similar to VNM: both choose the option with the highest expected
+score. But VNM alone does not give a stationary Markov reward. Such a
+reward must use a fixed rule $r(s,a,s')$ based on the current transition.
+An overall score might also need past information that the state does
+not contain.
 
-\paragraph{The reward hypothesis and expected utility.}
-The reward hypothesis says that an agent's goal can be expressed as the
-maximization of the expected cumulative sum of a scalar reward signal.
-For this undiscounted, finite-horizon problem, the objective is
+\paragraph{Compare the two schedules.}
+$J_{\mathrm{instant}}$ adds the log utilities at each step.
+$J_{\mathrm{average}}$ first averages each user's service, then takes logs.
+For A, the two allocations are $(6,3),(6,3)$, so
 \[
-J(\pi)=\mathbb{E}_{\pi}\!\left[\sum_{t=0}^{T-1}R_{t+1}\right].
+J_{\mathrm{instant}}(\pi_A)=2(\log6+\log3)=\log324.
 \]
-The modeling task is to choose rewards that quantify the intended goal,
-so that maximizing this expectation corresponds to pursuing that goal.
+For B, the allocations are $(10,1),(2,5)$, so
+\[
+J_{\mathrm{instant}}(\pi_B)=\log10+\log1+\log2+\log5=\log100.
+\]
+A's average allocation is $(6,3)$. B has the same average:
+\[
+\left(\frac{10+2}{2},\frac{1+5}{2}\right)=(6,3).
+\]
+Hence
+\[
+J_{\mathrm{average}}(\pi_A)
+=J_{\mathrm{average}}(\pi_B)=\log6+\log3=\log18.
+\]
+The objectives are \textbf{not equivalent}: the first prefers A, while
+the second gives a tie.
 
-This resembles the VNM representation: an abstract preference is
-represented numerically, and choices are evaluated by an expectation.
-VNM uses the expected utility of an outcome; in sequential decision
-making, an entire trajectory can be treated as the outcome, and its
-cumulative reward can serve as its utility. The VNM conclusion is
-conditional on its preference axioms, whereas the reward hypothesis is
-a claim about representing goals in the reward framework.
-
-An expected-utility representation does not automatically give a
-stationary Markov reward on a prescribed state space. Such a reward has
-a fixed form $r(s,a,s')$, depending only on the current transition, with
-no additional dependence on the past or on an external time index. A
-utility assigned to a whole trajectory may depend on history that the
-specified state does not retain. Consequently, a trajectory-level utility
-need not decompose into stationary Markov rewards on that original state
-space. Additional state information may be necessary.
-
-\paragraph{Fairness at each time versus fairness of average service.}
-The two objectives are
-\[
-J_{\mathrm{instant}}(\pi)
-=\mathbb{E}_{\pi}\!\left[
-\sum_{t=0}^{T-1}\bigl(\log X_1(t)+\log X_2(t)\bigr)\right]
-\]
-and
-\[
-\begin{aligned}
-J_{\mathrm{average}}(\pi)
-&=\mathbb{E}_{\pi}\!\left[\log\overline{X}_1
-                         +\log\overline{X}_2\right],\\
-\overline{X}_i&=\frac{1}{T}\sum_{t=0}^{T-1}X_i(t).
-\end{aligned}
-\]
-The first applies the utility function at every time step and then sums.
-The second first averages each user's service over time and only then
-applies utility. Since the logarithm is nonlinear, these operations
-cannot generally be interchanged.
-
-For $T=2$, all allocations in the two given schedules are feasible and
-use the full resource budget:
-\[
-6+2\cdot3=12,\qquad 10+2\cdot1=12,\qquad 2+2\cdot5=12.
-\]
-The schedules are deterministic, so the expectations do not change the
-following calculations.
-
-For $\pi_A$, the allocation is $(6,3)$ at both time steps. Therefore,
-\[
-\begin{aligned}
-J_{\mathrm{instant}}(\pi_A)
-&=2(\log6+\log3)\\
-&=2\log18=\log324.
-\end{aligned}
-\]
-Its average service rates are
-\[
-\overline{X}_1=\frac{6+6}{2}=6,
-\qquad
-\overline{X}_2=\frac{3+3}{2}=3,
-\]
-so
-\[
-J_{\mathrm{average}}(\pi_A)=\log6+\log3=\log18.
-\]
-
-For $\pi_B$, the allocations are $(10,1)$ and $(2,5)$. Thus,
-\[
-\begin{aligned}
-J_{\mathrm{instant}}(\pi_B)
-&=\log10+\log1+\log2+\log5\\
-&=\log100.
-\end{aligned}
-\]
-However, its average service rates are also
-\[
-\overline{X}_1=\frac{10+2}{2}=6,
-\qquad
-\overline{X}_2=\frac{1+5}{2}=3.
-\]
-Consequently,
-\[
-J_{\mathrm{average}}(\pi_B)=\log6+\log3=\log18.
-\]
-The instantaneous objective strictly prefers $\pi_A$, because
-$\log324>\log100$, while the average-service objective is indifferent
-between the schedules. They are therefore not equivalent even as
-preference criteria: one gives a strict preference where the other gives
-a tie. Under the average-service objective, a user's low service at one
-time can be compensated by high service at another time.
-
-\paragraph{A reward that exactly implements average-service utility.}
-A direct construction is to give zero reward before the terminal
-transition and put the utility of the final averages in the terminal
-reward:
+\paragraph{A reward for average service.}
+Give zero reward until the final step. At that step, give the utility of
+the average service:
 \[
 R_{t+1}=0\quad(0\leq t<T-1),\qquad
-R_T=\log\overline{X}_1+\log\overline{X}_2.
+R_T=\log\bar X_1+\log\bar X_2,
 \]
-For every realized trajectory,
+where $\bar X_i=\frac1T\sum_{t=0}^{T-1}X_i(t)$. Then
 \[
-\sum_{t=0}^{T-1}R_{t+1}
-=\log\overline{X}_1+\log\overline{X}_2.
-\]
-Taking the policy-dependent expectation gives exactly
-\[
-\mathbb{E}_{\pi}\!\left[\sum_{t=0}^{T-1}R_{t+1}\right]
+\mathbb E_\pi\!\left[\sum_{t=0}^{T-1}R_{t+1}\right]
+=\mathbb E_\pi[\log\bar X_1+\log\bar X_2]
 =J_{\mathrm{average}}(\pi).
 \]
-Thus the construction works for stochastic policies and trajectories as
-well as for the two deterministic examples.
-
-\paragraph{What the state must remember.}
-The terminal reward depends on allocations throughout the episode. Rather than the whole history, it is enough
-to retain the cumulative service totals
+To calculate this reward, keep track of each user's total service:
 \[
-C_i(t)=\sum_{\tau=0}^{t-1}X_i(\tau),\qquad C_i(0)=0,
-\qquad i=1,2.
+C_i(0)=0,\qquad C_i(t+1)=C_i(t)+X_i(t).
 \]
-They update recursively as
+Add these totals and the time to the state:
 \[
-C_i(t+1)=C_i(t)+X_i(t),
+\widetilde S_t=(S_t,C_1(t),C_2(t),t).
 \]
-and the terminal reward can be written as
-\[
-R_T=\log\!\left(\frac{C_1(T)}{T}\right)
-   +\log\!\left(\frac{C_2(T)}{T}\right).
-\]
-If the original state is $S_t$, augment it to
-\[
-\widetilde{S}_t=\bigl(S_t,C_1(t),C_2(t),t\bigr).
-\]
-The cumulative totals retain exactly the past information required by
-this objective, and the time coordinate determines when the terminal
-reward is due. On a transition ending at time $T$, the reward reads the
-new totals; on every other transition it is zero. This is a fixed rule
-on augmented transitions, rather than a rule requiring access to an
-unrecorded history.
-
-Provided that $S_t$ already suffices for the Markov transition dynamics
-and the allocation mechanism, this augmentation makes the reward Markov.
-Including time also allows the finite-horizon reward rule to be expressed
-as a stationary function on the augmented state space. The need for these
-extra variables illustrates why an expected-utility representation alone
-does not supply a stationary Markov reward on an arbitrary original state
-space.
+The totals give $\bar X_i=C_i(T)/T$, and the clock tells us when to pay
+the final reward. If $S_t$ already describes the environment's Markov
+dynamics, this larger state lets us use a fixed Markov reward rule without
+looking back through the whole history.
 
 \subsection*{(g)}
+VNM says that, under its four rules, choices can be ranked by expected
+utility. RL uses a similar idea for a sequence of decisions: rank policies
+by expected total reward.
 
-VNM expected utility represents preferences over uncertain outcomes by
-maximizing expected utility, under the four stated axioms. The reward
-hypothesis applies a related representation idea to sequential decisions:
-a goal is expressed through expected cumulative scalar reward. A policy
-induces a distribution over complete trajectories, so a trajectory can
-play the role of the uncertain outcome.
-
-For example, if a trajectory $\tau$ is evaluated by
-\[
-U(\tau)=\log\overline{X}_1(\tau)+\log\overline{X}_2(\tau),
-\]
-then the terminal-reward construction in part (f) gives
-\[
-\mathbb{E}_{\pi}[U(\tau)]
-=\mathbb{E}_{\pi}\!\left[\sum_{t=0}^{T-1}R_{t+1}\right].
-\]
-This makes the connection explicit, but it does not mean that VNM
-preferences automatically yield local, stationary Markov rewards.
-Trajectory utility may require relevant history to be included in the
-state, as the cumulative-service variables do here. Neither the theorem
-nor the reward hypothesis, by itself, selects which fairness objective
-the designer should adopt.
+For example, in part (f) we want good average service over the whole episode.
+We set the final reward equal to $\log\bar X_1+\log\bar X_2$ and all earlier
+rewards to zero. Maximizing expected total reward then gives exactly the
+wanted objective. We must also store the running service totals: VNM does
+not automatically tell us what the state or each step's reward should be.
 
 \end{document}
