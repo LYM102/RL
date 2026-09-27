@@ -1,0 +1,584 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=22mm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{microtype,booktabs,enumitem}
+\usepackage{tikz}
+\usepackage{titlesec,fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\newcommand{\partlabel}[1]{\subsection*{#1}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt plus 1pt}
+\AtBeginDocument{%
+  \setlength{\abovedisplayskip}{8pt plus 2pt minus 2pt}%
+  \setlength{\belowdisplayskip}{8pt plus 2pt minus 2pt}%
+}
+\setlist{nosep,leftmargin=*}
+\titleformat{\section}{\large\bfseries}{Problem \thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{12pt plus 2pt}{5pt}
+\titlespacing*{\subsection}{0pt}{7pt plus 1pt}{3pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small SI252 Reinforcement Learning}
+\fancyhead[R]{\small Homework 1}
+\fancyfoot[C]{\small\thepage}
+\setlength{\headheight}{14pt}
+\renewcommand{\headrulewidth}{0.3pt}
+\raggedbottom
+\hypersetup{pdftitle={SI252 Homework 1},pdfauthor={YiMing Li}}
+
+\begin{document}
+\begin{center}
+  {\LARGE\bfseries Homework 1}\par
+  \vspace{3pt}
+  {\large YiMing Li}\par
+  SI252 Reinforcement Learning \quad | \quad Fall 2026
+\end{center}
+\vspace{-3pt}
+
+\section{Random variables}
+A random variable encodes a numerical feature of an experiment, allowing us to study
+its distribution and moments rather than every detail of the outcome. For example,
+the number of heads in two coin tosses maps both $HT$ and $TH$ to $1$.
+Formally, $X:\Omega\to\mathbb R$ is a measurable function: the mapping is fixed,
+but the realized value $X(\omega)$ depends on the random outcome $\omega$.
+This uncertain numerical value explains the name ``random variable.''
+
+\section{Probability and estimation identities}
+Write $p$ for probability mass functions and $f$ for densities. Density identities
+hold almost everywhere, and conditional ratios require positive denominators.
+Assume the densities and finite second moments used below exist.
+
+\partlabel{(a) General Bayes' rule: four cases}
+The joint mass/density can be factored in either order. With rows specifying the
+types of $(X,Y)$, these factorizations give
+\[
+\begin{array}{c@{\qquad}l}
+\text{discrete, discrete}
+ &p_{Y\mid X}(y\mid x)=\dfrac{p_{X\mid Y}(x\mid y)p_Y(y)}{p_X(x)},\\[9pt]
+\text{discrete, continuous}
+ &f_{Y\mid X}(y\mid x)=\dfrac{p_{X\mid Y}(x\mid y)f_Y(y)}{p_X(x)},\\[9pt]
+\text{continuous, discrete}
+ &p_{Y\mid X}(y\mid x)=\dfrac{f_{X\mid Y}(x\mid y)p_Y(y)}{f_X(x)},\\[9pt]
+\text{continuous, continuous}
+ &f_{Y\mid X}(y\mid x)=\dfrac{f_{X\mid Y}(x\mid y)f_Y(y)}{f_X(x)}.
+\end{array}
+\]
+For example, in the mixed discrete--continuous case, for every measurable $B$,
+\[
+ p_X(x)\int_B f_{Y\mid X}(y\mid x)\,dy
+ =\Prob(X=x,Y\in B)
+ =\int_B p_{X\mid Y}(x\mid y)f_Y(y)\,dy.
+\]
+Equality of the integrands proves the second formula; exchanging $X,Y$ proves
+the third. The first and fourth follow directly by factoring $p_{X,Y}$ and
+$f_{X,Y}$, respectively.
+
+\partlabel{(b) General law of total probability: four cases}
+Marginalize the joint distribution over $Y$ (sum for discrete $Y$, integrate
+for continuous $Y$), then substitute its conditional factorization:
+\[
+\begin{array}{c@{\qquad}l}
+\text{discrete, discrete}
+ &p_X(x)=\displaystyle\sum_y p_{X\mid Y}(x\mid y)p_Y(y),\\[7pt]
+\text{discrete, continuous}
+ &p_X(x)=\displaystyle\int_{\mathbb R}p_{X\mid Y}(x\mid y)f_Y(y)\,dy,\\[7pt]
+\text{continuous, discrete}
+ &f_X(x)=\displaystyle\sum_y f_{X\mid Y}(x\mid y)p_Y(y),\\[7pt]
+\text{continuous, continuous}
+ &f_X(x)=\displaystyle\int_{\mathbb R}f_{X\mid Y}(x\mid y)f_Y(y)\,dy.
+\end{array}
+\]
+The first two formulas sum or integrate $\Prob(X=x,Y\in\cdot)$.
+For the last two, apply the same argument to $\Prob(X\in A)$ for every measurable
+$A$, interchange nonnegative integrals/sums by Tonelli's theorem, and identify
+the density of $X$.
+
+\partlabel{(c) Law of total variance}
+Let $m(X)=\E[Y\mid X]$. The tower property gives $\E[m(X)]=\E[Y]$, so
+\[
+\begin{aligned}
+ \E[\Var(Y\mid X)]+\Var(m(X))
+ &=\E[Y^2]-\E[m(X)^2]+\E[m(X)^2]-(\E[Y])^2\\
+ &=\Var(Y).
+\end{aligned}
+\]
+
+\partlabel{(d) Linear least-squares estimate}
+For $\Var(X)>0$, centering yields
+\[
+ \E[(Y-a-bX)^2]
+ =\Var(Y)-2b\Cov(X,Y)+b^2\Var(X)
+   +(\E[Y]-a-b\E[X])^2.
+\]
+First choose $a=\E[Y]-b\E[X]$; the remaining strictly convex quadratic is
+minimized at $b=\Cov(X,Y)/\Var(X)$. Hence
+\[
+ \boxed{L[Y\mid X]=\E[Y]+\frac{\Cov(X,Y)}{\Var(X)}(X-\E[X]).}
+\]
+If $\Var(X)=0$, every affine predictor is constant almost surely and the best
+predicted value is $\E[Y]$.
+
+\partlabel{(e) Orthogonality of the MMSE estimate and its converse}
+For $m(X)=\E[Y\mid X]$ and any square-integrable $\phi(X)$,
+\[
+ \E[(Y-m(X))\phi(X)]
+ =\E\!\left[\phi(X)\E[Y-m(X)\mid X]\right]=0.
+\]
+Conversely, if a square-integrable $g(X)$ satisfies the same condition for every
+such $\phi$, subtraction gives $\E[(m(X)-g(X))\phi(X)]=0$.
+Taking $\phi(X)=m(X)-g(X)$ yields $\E[(m(X)-g(X))^2]=0$, so
+$g(X)=\E[Y\mid X]$ almost surely. In particular, orthogonality implies
+\[
+ \E[(Y-g(X))^2]=\E[(Y-m(X))^2]+\E[(m(X)-g(X))^2],
+\]
+which also proves the MMSE property.
+
+\partlabel{(f) A two-sided variance bound}
+Chebyshev's inequality and the bound by $1$ give, for $a>0$,
+\[
+ \Prob(|Z-\E[Z]|\ge a)
+ \le\min\!\left\{1,\frac{\sigma^2}{a^2}\right\}
+ \le\frac{2\sigma^2}{\sigma^2+a^2}.
+\]
+For the last inequality, if $a^2\le\sigma^2$, the right-hand side is at least $1$;
+if $a^2>\sigma^2$, use $\sigma^2+a^2\le2a^2$. This includes $\sigma^2=0$.
+
+\partlabel{(g) General Hoeffding inequality}
+Set $V=\sum_{k=1}^n(b_k-a_k)^2$ and $\mu=\E[S_n]$.
+By independence and Hoeffding's lemma (proved in Problem~9),
+\[
+ \E[e^{\lambda(S_n-\mu)}]
+ =\prod_{k=1}^n\E[e^{\lambda(X_k-\E[X_k])}]
+ \le e^{\lambda^2V/8}.
+\]
+For $V,t>0$, exponential Markov inequality followed by $\lambda=4t/V$ gives
+\[
+ \Prob(S_n-\mu\ge t)\le e^{-\lambda t+\lambda^2V/8}
+ =e^{-2t^2/V}.
+\]
+Apply the same argument to $-X_k$ and use the union bound:
+\[
+ \boxed{\Prob(|S_n-\mu|\ge t)\le
+ 2\exp\!\left(-\frac{2t^2}{\sum_{k=1}^n(b_k-a_k)^2}\right).}
+\]
+At $t=0$ the claim is trivial. If $V=0$, $S_n=\mu$ almost surely, so the tail
+probability is $0$ for $t>0$ (and $1$ for $t=0$).
+
+\section{Exponential conditional expectations}
+Use the rate convention $f_{X_i}(x)=\lambda_i e^{-\lambda_i x}$ for $x>0$.
+Memorylessness gives $\E[X_i\mid X_i>t]=t+1/\lambda_i$, hence
+\[
+ \boxed{\E[X_1\mid X_1>2026]=2026+\frac1{\lambda_1}.}
+\]
+For truncation below $t$, integration by parts gives
+\[
+ \E[X_1\mid X_1<t]
+ =\frac{\int_0^t x\lambda_1e^{-\lambda_1x}\,dx}{1-e^{-\lambda_1t}}
+ =\frac1{\lambda_1}-\frac{t}{e^{\lambda_1t}-1}.
+\]
+Thus the second answer is $\boxed{1/\lambda_1-2026/(e^{2026\lambda_1}-1)}$.
+Independence preserves the separate conditional laws under the three threshold
+events, so
+\[
+\begin{aligned}
+ &\E[X_1+X_2+X_3\mid X_1>1997,\ X_2>2014,\ X_3>2026]\\
+ &\hspace{2em}=\boxed{6037+\frac1{\lambda_1}+\frac1{\lambda_2}+\frac1{\lambda_3}}.
+\end{aligned}
+\]
+
+\section{Bivariate normal construction}
+\partlabel{(a) Joint normality}
+For any $a,b\in\mathbb R$,
+\[
+ aX+bY=a\mu_X+b\mu_Y+(a\sigma_X+b\rho\sigma_Y)Z_1
+       +b\sigma_Y\sqrt{1-\rho^2}\,Z_2.
+\]
+This is a linear combination of independent normal variables, hence normal
+(possibly constant). Thus $(X,Y)$ is jointly Gaussian.
+
+\partlabel{(b) Correlation}
+Independence of $Z_1,Z_2$ gives
+\[
+ \Var(X)=\sigma_X^2,\qquad \Var(Y)=\sigma_Y^2,\qquad
+ \Cov(X,Y)=\rho\sigma_X\sigma_Y,
+ \qquad \boxed{\Corr(X,Y)=\rho}.
+\]
+
+\partlabel{(c) Joint density}
+Put $u=(x-\mu_X)/\sigma_X$ and $v=(y-\mu_Y)/\sigma_Y$.
+The inverse map is $z_1=u$, $z_2=(v-\rho u)/\sqrt{1-\rho^2}$, with
+absolute Jacobian $1/(\sigma_X\sigma_Y\sqrt{1-\rho^2})$. Transforming the
+independent standard-normal density therefore gives, for all $x,y\in\mathbb R$,
+\[
+ \boxed{f_{X,Y}(x,y)=\frac{1}{2\pi\sigma_X\sigma_Y\sqrt{1-\rho^2}}
+ \exp\!\left[-\frac{u^2-2\rho uv+v^2}{2(1-\rho^2)}\right].}
+\]
+
+\section{A three-state Markov chain}
+With state order $(1,2,3)$ and $p_{ij}=\Prob(X_{n+1}=j\mid X_n=i)$, the diagram gives
+\[
+ P=\begin{pmatrix}1/4&0&3/4\\1/2&0&1/2\\1/2&1/4&1/4\end{pmatrix}.
+\]
+\partlabel{(a) One-step probabilities}
+Time homogeneity gives
+$\Prob(X_5=3\mid X_4=2)=p_{23}=\boxed{1/2}$ and
+$\Prob(X_4=1\mid X_3=2)=p_{21}=\boxed{1/2}$.
+
+\partlabel{(b) Stationary distribution}
+Solving $\boldsymbol\pi P=\boldsymbol\pi$ gives
+$\pi_2=\pi_3/4$ and $3\pi_1/4=\pi_2/2+\pi_3/2$, hence
+$\pi_1=5\pi_3/6$. Normalization yields
+\[
+ \boxed{\boldsymbol\pi=(2/5,\,3/25,\,12/25).}
+\]
+\partlabel{(c) Periods}
+The positive-probability returns $2\to3\to2$ and $2\to3\to3\to2$ have lengths
+$2$ and $3$. Thus $d(2)=\gcd(2,3)=1$.
+All states communicate, so the entire chain has period $1$.
+
+\partlabel{(d) Path probability}
+By the Markov property,
+\[
+ \Prob(X_0=3,X_1=2,X_2=1)=\frac15\,p_{32}p_{21}
+ =\frac15\cdot\frac14\cdot\frac12=\boxed{\frac1{40}}.
+\]
+\partlabel{(e) Two-step conditional moments}
+The first row of $P^2$ is $(7,3,6)/16$. Therefore
+\[
+ \E[X_5\mid X_3=1]=\frac{7+2\cdot3+3\cdot6}{16}=\boxed{\frac{31}{16}},
+ \qquad
+ \E[X_5^2\mid X_3=1]=\frac{7+4\cdot3+9\cdot6}{16}=\frac{73}{16},
+\]
+\[
+ \boxed{\Var(X_5\mid X_3=1)=\frac{73}{16}-\left(\frac{31}{16}\right)^2
+ =\frac{207}{256}.}
+\]
+
+\section{Estimating a coin's head probability}
+Assume $n\ge1$ and $0\le k\le n$. The likelihood is
+$L(p)=\binom nk p^k(1-p)^{n-k}$ on $[0,1]$.
+
+\partlabel{(a) MLE}
+For $0<k<n$, $\ell'(p)=k/p-(n-k)/(1-p)=0$ gives $p=k/n$;
+$\ell''(p)<0$ verifies maximality. If $k=0$ or $n$, the maximum is at $0$ or $1$.
+Thus $\boxed{\hat p_{\mathrm{MLE}}=k/n}$.
+
+\partlabel{(b) MAP}
+Since $\operatorname{Beta}(1,1)=\operatorname{Unif}(0,1)$,
+\[
+ f(p\mid X=k)\propto p^k(1-p)^{n-k},\qquad
+ p\mid X=k\sim\operatorname{Beta}(k+1,n-k+1).
+\]
+The uniform prior leaves the likelihood maximizer unchanged, so
+$\boxed{\hat p_{\mathrm{MAP}}=k/n}$, including the endpoint modes on $[0,1]$.
+
+\partlabel{(c) MMSE}
+The posterior mean gives
+$\boxed{\hat p_{\mathrm{MMSE}}=\E[p\mid X=k]=(k+1)/(n+2)}$.
+
+\partlabel{(d) LLSE}
+Under the prior-predictive joint distribution,
+\[
+ \E[p]=\frac12,\quad \Var(p)=\frac1{12},\quad
+ \E[X]=\E[np]=\frac n2,\quad
+ \Cov(X,p)=\Cov(\E[X\mid p],p)=\frac n{12}.
+\]
+The total-variance formula gives
+\[
+ \Var(X)=\E[np(1-p)]+\Var(np)=\frac n6+\frac{n^2}{12}
+ =\frac{n(n+2)}{12}.
+\]
+Consequently,
+\[
+ \boxed{\hat p_{\mathrm{LLSE}}=\frac12+
+ \frac{n/12}{n(n+2)/12}\left(k-\frac n2\right)=\frac{k+1}{n+2}.}
+\]
+
+\section{Gaussian MMSE equals LLSE: two methods}
+Let $\mu_X=\E[X]$, $\mu_Y=\E[Y]$, $\sigma_X^2=\Var(X)>0$, and
+$\beta=\Cov(X,Y)/\sigma_X^2$.
+
+\partlabel{Method 1: an independent Gaussian residual}
+Define $Z=Y-\mu_Y-\beta(X-\mu_X)$. Then $\E[Z]=0$ and
+\[
+ \Cov(X,Z)=\Cov(X,Y)-\beta\Var(X)=0.
+\]
+Because $(X,Z)$ is jointly Gaussian, zero covariance implies independence.
+Thus $\E[Z\mid X]=0$, and
+\[
+ \boxed{\E[Y\mid X]=\mu_Y+\beta(X-\mu_X)=L[Y\mid X].}
+\]
+The last equality also follows from Problem~2(d).
+
+\partlabel{Method 2: completing the square in the conditional density}
+For $\sigma_Y>0$ and $|\rho|<1$, standardize to
+$U=(X-\mu_X)/\sigma_X$ and $V=(Y-\mu_Y)/\sigma_Y$.
+Using $u^2-2\rho uv+v^2=(v-\rho u)^2+(1-\rho^2)u^2$,
+\[
+ f_{V\mid U}(v\mid u)=\frac{f_{U,V}(u,v)}{f_U(u)}
+ =\frac{\exp[-(v-\rho u)^2/(2(1-\rho^2))]}{\sqrt{2\pi(1-\rho^2)}}.
+\]
+Hence $\E[V\mid U=u]=\rho u$, and transforming back gives
+\[
+ \E[Y\mid X=x]=\mu_Y+\frac{\rho\sigma_Y}{\sigma_X}(x-\mu_X)
+ =\mu_Y+\beta(x-\mu_X)=L[Y\mid X=x].
+\]
+For completeness, if $\sigma_Y=0$ then $Y=\mu_Y$ almost surely. If $|\rho|=1$,
+$\Var(V-\rho U)=0$, so $V=\rho U$ almost surely and the same answer follows.
+If $\Var(X)=0$, the ratio is undefined, but both estimates reduce to $\E[Y]$.
+
+\section{Expected return of the uniform-sum program}
+Let $U_i$ be independent $\operatorname{Unif}(0,1)$ increments,
+$S_n=\sum_{i=1}^nU_i$, and $N=\min\{n\ge1:S_n>1\}$.
+The program returns $S_N$, not $N$. The volume of the simplex
+$\{u_i\ge0:\sum_{i=1}^n u_i\le1\}$ is $1/n!$, so
+\[
+ \Prob(N>n)=\Prob(S_n\le1)=\frac1{n!},\qquad
+ \E[N]=\sum_{n=0}^\infty\Prob(N>n)=e.
+\]
+The event $\{N\ge i\}=\{S_{i-1}\le1\}$ depends only on earlier increments and
+is independent of $U_i$. By Tonelli's theorem,
+\[
+ \E[S_N]=\sum_{i=1}^\infty\E[U_i\mathbf1_{\{N\ge i\}}]
+ =\frac12\sum_{i=1}^\infty\Prob(N\ge i)
+ =\boxed{\frac e2\approx1.35914}.
+\]
+
+\section{Hoeffding's lemma}
+Suppose $\E[X]=0$ and $a\le X\le b$. If $a=b$, then $X=0$ almost surely and
+the claim is immediate. Otherwise $a\le0\le b$ and convexity gives
+\[
+ e^{\lambda x}\le\frac{b-x}{b-a}e^{\lambda a}
+                  +\frac{x-a}{b-a}e^{\lambda b},\qquad a\le x\le b.
+\]
+Taking expectations and putting $p=-a/(b-a)\in[0,1]$ and $t=\lambda(b-a)>0$,
+\[
+ \E[e^{\lambda X}]\le(1-p)e^{-pt}+pe^{(1-p)t}=e^{h(t)},\qquad
+ h(t)=-pt+\log(1-p+pe^t).
+\]
+We have $h(0)=h'(0)=0$ and
+\[
+ h''(t)=\frac{p(1-p)e^t}{(1-p+pe^t)^2}
+       =q(t)(1-q(t))\le\frac14,
+ \qquad q(t)=\frac{pe^t}{1-p+pe^t}\in[0,1].
+\]
+Integrating twice yields $h(t)=\int_0^t(t-s)h''(s)\,ds\le t^2/8$.
+Therefore
+\[
+ \boxed{\E[e^{\lambda X}]\le\exp\!\left(\frac{\lambda^2(b-a)^2}{8}\right).}
+\]
+
+\section{Utility, fairness, and reinforcement-learning rewards}
+Throughout, $\mathcal F=\{(x_1,x_2)\in\mathbb R_{\ge0}^2:x_1+2x_2\le12\}$;
+logarithmic objectives require $x_1,x_2>0$.
+
+\partlabel{(a) What a utility function represents}
+A utility function represents deterministic preferences when
+\[
+ x\succeq y\quad\Longleftrightarrow\quad u(x)\ge u(y).
+\]
+Any strictly increasing transformation preserves this ranking. Thus $x$ and
+$\log x$ both mean ``more service is better,'' but their sums need not have the
+same maximizer: on $\mathcal F$, they yield $(12,0)$ and $(6,3)$, respectively
+(derived in part (c)). Individual rankings do not specify utility differences
+or comparisons between users; utility scales and weights supply these extra
+interpersonal trade-offs.
+
+\partlabel{(b) Concavity, diminishing returns, and transfers}
+The conditions $u'(x)>0$ and $u''(x)<0$ mean that service increases utility,
+but its marginal benefit decreases. Figure~\ref{fig:utility} shows a representative
+curve and the decreasing tangent slopes.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=1.15cm,y=1.25cm,>=stealth,font=\small]
+ \draw[->] (0,0) -- (7,0) node[right] {Service $x$};
+ \draw[->] (0,0) -- (0,3.05) node[above] {Utility $u(x)$};
+ \draw[thick,blue!65!black,domain=0:6.6,samples=100]
+   plot (\x,{ln(1+\x)}) node[right] {$u(x)=\log(1+x)$};
+ \draw[densely dashed,gray] (1,0) -- (1,{ln(2)});
+ \draw[densely dashed,gray] (5,0) -- (5,{ln(6)});
+ \fill (1,{ln(2)}) circle (1.8pt);
+ \fill (5,{ln(6)}) circle (1.8pt);
+ \draw[thick,orange!80!black,domain=0.2:2.2]
+   plot (\x,{ln(2)+(\x-1)/2});
+ \draw[thick,orange!80!black,domain=3.8:6.2]
+   plot (\x,{ln(6)+(\x-5)/6});
+ \node[above left] at (1.6,1.15) {slope $1/2$};
+ \node[above] at (5,2.02) {slope $1/6$};
+ \node[below] at (1,0) {$1$};
+ \node[below] at (5,0) {$5$};
+ \node at (3.4,2.75) {$u'(x)>0,\qquad u''(x)<0$};
+\end{tikzpicture}
+\caption{Increasing, strictly concave utility: the same extra service has a
+smaller marginal benefit at a higher service level.}
+\label{fig:utility}
+\end{figure}
+
+For $0<a<b$ and $0<\delta<(b-a)/2$, define
+$H(\delta)=u(a+\delta)+u(b-\delta)$. Since $a+\delta<b-\delta$ and $u'$ is
+strictly decreasing,
+\[
+ H'(\delta)=u'(a+\delta)-u'(b-\delta)>0
+ \quad\Longrightarrow\quad
+ u(a+\delta)+u(b-\delta)>u(a)+u(b).
+\]
+This transfer preserves total \emph{service}, not necessarily total
+\emph{resource use}. For example, moving $\delta$ service from user 1 to user 2
+increases $x_1+2x_2$ by $\delta$. At an interior optimum with equal weights,
+$u'(x_1)=u'(x_2)/2$: marginal utility per unit of resource, rather than service,
+is equalized. Thus strict concavity need not imply equal rates; log utility
+gives $(6,3)$.
+
+\partlabel{(c) Optimal allocations and proportional fairness}
+\begin{itemize}
+ \item \textbf{Total service:} $x_1+x_2\le x_1+2x_2\le12$, with equality
+ only at $(12,0)$.
+ \item \textbf{Log utility:} monotonicity makes the constraint bind. For
+ $f(x_2)=\log(12-2x_2)+\log x_2$, the equation
+ $f'(x_2)=-2/(12-2x_2)+1/x_2=0$ gives $x_2=3$, hence $(6,3)$.
+ Strict concavity ensures the unique maximum.
+ \item \textbf{Minimum service:} if $t=\min\{x_1,x_2\}$, then
+ $3t\le x_1+2x_2\le12$. The bound $t=4$ is attained at $(4,4)$.
+\end{itemize}
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+Objective & Allocation & Total service & Minimum service\\
+\midrule
+Total service & $(12,0)$ & $12$ & $0$\\
+Log utility & $(6,3)$ & $9$ & $3$\\
+Minimum service & $(4,4)$ & $8$ & $4$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Log utility implements \emph{proportional fairness}, neither maximum throughput
+nor equal service. Indeed, for a maximizer $\mathbf x^*$ over a convex
+$\mathcal C\subseteq\mathbb R_{>0}^n$, every segment
+$\mathbf x^*+t(\mathbf y-\mathbf x^*)$, $0\le t\le1$, is feasible. Optimality gives
+\[
+ \boxed{\left.\frac{d}{dt}\sum_i\log(x_i^*+t(y_i-x_i^*))\right|_{t=0^+}
+ =\sum_i\frac{y_i-x_i^*}{x_i^*}\le0.}
+\]
+Thus no feasible change has a positive sum of users' proportional service changes:
+percentage gains cannot outweigh percentage losses relative to $\mathbf x^*$.
+
+For $2\log x_1+\log x_2$, the binding constraint and first-order condition give
+\[
+ -\frac4{12-2x_2}+\frac1{x_2}=0
+ \quad\Longrightarrow\quad \boxed{(x_1^*,x_2^*)=(8,2)}.
+\]
+The coefficient $2$ gives user 1 twice the utility weight, so the same proportional
+increase counts twice as much. It implements \emph{weighted proportional fairness};
+it does not require twice the service or literally represent two users.
+
+\partlabel{(d) Concavity under uncertainty}
+For the certain payoff A and lottery B,
+\[
+ \E[X_A]=\E[X_B]=5,\qquad
+ \E[\log X_A]=\log5>\tfrac12\log1+\tfrac12\log9=\log3.
+\]
+Expected-payoff maximization is indifferent; expected-log-utility maximization
+strictly prefers A. The certainty equivalent of B is
+$\boxed{c=\exp(\E[\log X_B])=3}$.
+Generally, Jensen's inequality gives $\E[u(X)]\le u(\E[X])$ for concave $u$:
+the certain mean is weakly preferred to the lottery (strictly so for strictly
+concave $u$ and a nonconstant lottery, when expectations exist).
+This is \emph{risk aversion across outcomes for one user}; part (b) concerns
+\emph{fairness across different users}.
+
+\partlabel{(e) The von Neumann--Morgenstern theorem}
+For lotteries $P,Q,R$ over a finite outcome set $\{z_1,\ldots,z_m\}$, the four
+standard preference axioms are:
+\begin{enumerate}[label=\arabic*.]
+ \item \textbf{Completeness:} $P\succeq Q$ or $Q\succeq P$ for every pair.
+ \item \textbf{Transitivity:} $P\succeq Q$ and $Q\succeq R$ imply $P\succeq R$.
+ \item \textbf{Continuity:} if $P\succ Q\succ R$, some $\alpha\in(0,1)$ satisfies
+ $Q\sim\alpha P+(1-\alpha)R$.
+ \item \textbf{Independence:} for every $\alpha\in(0,1)$,
+ $P\succeq Q$ if and only if
+ $\alpha P+(1-\alpha)R\succeq\alpha Q+(1-\alpha)R$.
+\end{enumerate}
+These axioms are equivalent to an expected-utility representation:
+\[
+ P\succeq Q\quad\Longleftrightarrow\quad
+ \sum_j P(z_j)u(z_j)\ge\sum_j Q(z_j)u(z_j).
+\]
+The utility index is unique up to positive affine transformations
+$v=au+b$, $a>0$. The theorem requires neither concavity nor logarithmic utility
+and does not determine interpersonal fairness.
+An arbitrary increasing transformation preserves deterministic rankings but may
+change lottery preferences, because it need not commute with expectation:
+part (d) has $A\sim B$ under $u(x)=x$ but $A\succ B$ under $v(x)=\log x$.
+
+\partlabel{(f) From utility to episodic RL rewards}
+The \emph{reward hypothesis} proposes that a goal can be expressed as maximizing
+the expected cumulative sum of a scalar reward. In this undiscounted,
+fixed-horizon setting, $J(\pi)=\E_\pi[\sum_{t=0}^{T-1}R_{t+1}]$.
+Like VNM, this represents preferences by an expectation of a scalar quantity.
+However, VNM alone supplies neither temporal additivity nor a stationary Markov
+reward on a prescribed state space.
+
+The two fairness objectives are
+\[
+\begin{aligned}
+ J_{\mathrm{instant}}(\pi)
+ &=\E_\pi\!\left[\sum_{t=0}^{T-1}\bigl(\log X_1(t)+\log X_2(t)\bigr)\right],\\
+ J_{\mathrm{average}}(\pi)
+ &=\E_\pi[\log\bar X_1+\log\bar X_2],
+ \qquad \bar X_i=\frac1T\sum_{t=0}^{T-1}X_i(t).
+\end{aligned}
+\]
+For $T=2$, both schedules have average allocation $(6,3)$:
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+Schedule & Allocations & $J_{\mathrm{instant}}$ & $J_{\mathrm{average}}$\\
+\midrule
+$\pi_A$ & $(6,3),\ (6,3)$ & $2\log18=\log324$ & $\log18$\\
+$\pi_B$ & $(10,1),\ (2,5)$ & $2\log10=\log100$ & $\log18$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Thus the objectives are not equivalent: the first strictly prefers A, while the
+second is indifferent. Even dividing $J_{\mathrm{instant}}$ by $T$ does not remove
+this difference; concavity penalizes temporal fluctuations under instantaneous
+utility.
+
+Instantaneous utility uses $R_{t+1}=\log X_1(t)+\log X_2(t)$.
+For average-service utility, let $C_i(t)=\sum_{s=0}^{t-1}X_i(s)$, with $C_i(0)=0$,
+and use the terminal reward
+\[
+ R_{t+1}=\begin{cases}
+ 0, & 0\le t<T-1,\\[2pt]
+ \log\!\dfrac{C_1(t)+X_1(t)}{T}
+ +\log\!\dfrac{C_2(t)+X_2(t)}{T}, & t=T-1.
+ \end{cases}
+\]
+Pathwise, $\sum_{t=0}^{T-1}R_{t+1}=\log\bar X_1+\log\bar X_2$, so its expectation
+is exactly $J_{\mathrm{average}}$. Augment a Markov environment state to
+$\widetilde S_t=(S_t,C_1(t),C_2(t),t)$, updating
+$C_i(t+1)=C_i(t)+X_i(t)$. The accumulated service and clock make this a Markov
+reward with no additional external time dependence; complete histories are unnecessary.
+
+\partlabel{(g) VNM and the reward hypothesis: connection and limits}
+Treat a complete trajectory $\tau$ as an outcome and a policy as inducing a lottery
+over trajectories. When the relevant expected-utility representation exists,
+preferences take the form $\E_\pi[U(\tau)]$; RL realizes this form when
+$U(\tau)=\sum_tR_{t+1}$. For example, part (f)'s terminal reward realizes utility
+of average service exactly.
+VNM is a conditional representation theorem, not a proof that every goal admits
+an additive stationary Markov reward on the original state space. Temporal
+structure, sufficient state information, and fairness weights are additional
+modeling choices. Moreover, applying the finite-outcome theorem to continuous
+trajectory spaces requires appropriate additional assumptions.
+
+\end{document}
